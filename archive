@@ -1,0 +1,42 @@
+#!/bin/bash
+if [ "$1" = "--src" ]
+then
+    cd "$2"
+    shift 2
+fi
+
+archive_name="$1"
+shift
+mkdir .${archive_name}
+cnt=0
+while [ -n "$1" ]
+do
+    for file in $(find . -name "*.$1" -not -path "./.${archive_name}/*")
+    do
+        bn=$(basename $file)
+        if ! [ -f "./.${archive_name}/$bn" ]
+        then
+            cp $file "./.${archive_name}/$bn"
+        else
+            name=${bn%".$1"}
+            l=-1
+            r=$(($cnt+1))
+            while [ $(($r-$l)) -ne 1 ]
+            do
+                m=$(($(($l+$r))/2))
+                if [ -f "./.${archive_name}/${name}($m).$1" ]
+                then
+                    l=$m
+                else
+                    r=$m
+                fi
+            done
+            cp $file "./.${archive_name}/${name}($r).$1"
+        fi
+        cnt=$(($a+1))
+    done
+    shift
+done
+tar -cf "${archive_name}.tar" .${archive_name}
+rm -rf .${archive_name}
+echo done
